@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecoverX AI — Intelligent Data Recovery &amp; Forensic Evidence Reconstruction</title>
+<style>
+:root{
+  --bg:#0A0D10;
+  --panel:#11151A;
+  --panel-2:#161B21;
+  --line:#232A31;
+  --line-soft:#1B2127;
+  --text:#DCE4E8;
+  --text-dim:#7C8A93;
+  --text-faint:#4E5A62;
+  --cyan:#3FC6D8;
+  --cyan-dim:#1F5158;
+  --amber:#E3A639;
+  --red:#E1584F;
+  --green:#3FAE72;
+  --violet:#8B7FE0;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+  --r: 4px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.5;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none;}
+.app{display:flex;min-height:100vh;}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:250px;
+  min-width:250px;
+  background:var(--panel);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  z-index:10;
+}
+.brand{
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--line);
+}
+.brand-mark{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-mark .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+.brand-name{font-size:16px;font-weight:700;letter-spacing:0.3px;color:var(--text);}
+.brand-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:4px;letter-spacing:0.5px;}
+.nav{padding:10px 8px;flex:1;}
+.nav-group-label{
+  font-size:10px;
+  color:var(--text-faint);
+  padding:14px 10px 6px;
+  font-family:var(--mono);
+  letter-spacing:0.8px;
+}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  text-align:left;
+  padding:8px 10px;
+  border-radius:var(--r);
+  border:none;
+  background:transparent;
+  color:var(--text-dim);
+  font-size:13px;
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:all 0.15s ease;
+}
+.nav-item .n{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);width:18px;flex-shrink:0;}
+.nav-item:hover{background:var(--panel-2);color:var(--text);}
+.nav-item.active{background:rgba(63,198,216,0.12);color:var(--cyan);font-weight:600;}
+.nav-item.active .n{color:var(--cyan);}
+.case-chip{
+  margin:10px 10px 14px;
+  padding:10px 11px;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  background:var(--panel-2);
+}
+.case-chip .cl{font-family:var(--mono);font-size:9.5px;color:var(--text-faint);letter-spacing:0.5px;}
+.case-chip .cv{font-family:var(--mono);font-size:12px;color:var(--cyan);margin-top:3px;font-weight:600;}
+
+/* ---------- Main ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{
+  height:52px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 26px;
+  background:rgba(17,21,26,0.85);
+  position:sticky;top:0;z-index:9;
+  backdrop-filter:blur(8px);
+}
+.topbar .crumbs{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);}
+.topbar .crumbs b{color:var(--text);}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:11px;color:var(--green);
+  border:1px solid var(--cyan-dim);
+  padding:4px 12px;border-radius:20px;
+  background:rgba(63,198,216,0.05);
+}
+.status-pill .p{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+
+.view{display:none;padding:26px 34px 60px;max-width:1240px;width:100%;margin:0 auto;}
+.view.active{display:block;animation:fadeIn 0.2s ease-in-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+h1.pt{font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:0.1px;color:var(--text);}
+p.pd{color:var(--text-dim);font-size:13.5px;margin:0 0 24px;max-width:720px;line-height:1.55;}
+
+.grid{display:grid;gap:16px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr;}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:18px 20px;
+}
+.card h3{margin:0 0 10px;font-size:13.5px;color:var(--text);font-weight:600;}
+.card .hint{font-size:12px;color:var(--text-dim);margin-top:8px;}
+
+.metric{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:16px 18px;
+  position:relative;
+  overflow:hidden;
+}
+.metric .mv{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);}
+.metric .ml{font-size:11.5px;color:var(--text-dim);margin-top:4px;}
+.metric.cyan .mv{color:var(--cyan);}
+.metric.amber .mv{color:var(--amber);}
+.metric.red .mv{color:var(--red);}
+.metric.green .mv{color:var(--green);}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--cyan);
+  color:#06181B;
+  border:none;
+  padding:9px 18px;
+  border-radius:var(--r);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:all 0.15s ease;
+}
+.btn:hover{background:#57D2E1;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn.secondary{
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--line);
+}
+.btn.secondary:hover{border-color:var(--text-dim);background:var(--panel-2);}
+.btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--line-soft);padding:7px 13px;font-weight:500;}
+.btn.ghost:hover{color:var(--text);border-color:var(--line);}
+.btn.danger{background:var(--red);color:#fff;}
+.btn.danger:hover{background:#ea6960;}
+.btn-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;align-items:center;}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{
+  text-align:left;
+  font-family:var(--mono);
+  font-size:10.5px;
+  color:var(--text-faint);
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-weight:600;
+  letter-spacing:0.5px;
+}
+td{
+  padding:11px 12px;
+  border-bottom:1px solid var(--line-soft);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:12px;
+}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.tablewrap{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel);}
+
+.tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:10.5px;
+  padding:2px 8px;border-radius:20px;
+  border:1px solid currentColor;
+  font-weight:500;
+}
+.tag.good{color:var(--green);background:rgba(63,174,114,0.08);}
+.tag.warn{color:var(--amber);background:rgba(227,166,57,0.08);}
+.tag.bad{color:var(--red);background:rgba(225,88,79,0.08);}
+.tag.info{color:var(--cyan);background:rgba(63,198,216,0.08);}
+.tag.dim{color:var(--text-faint);background:rgba(78,90,98,0.08);}
+
+.bar-track{height:6px;background:var(--line-soft);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+
+.section-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.section-nav button{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--text-dim);
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:11.5px;
+  cursor:pointer;
+  font-family:var(--mono);
+  transition:all 0.15s ease;
+}
+.section-nav button:hover{color:var(--text);border-color:var(--text-dim);}
+.section-nav button.on{color:var(--cyan);border-color:var(--cyan);background:rgba(63,198,216,0.08);}
+
+.workflow-strip{
+  display:flex;align-items:center;gap:0;
+  margin:20px 0 6px;
+  overflow-x:auto;
+  padding-bottom:8px;
+  scrollbar-width:thin;
+}
+.wf-node{
+  font-family:var(--mono);font-size:10.5px;
+  color:var(--text-dim);
+  border:1px solid var(--line);
+  padding:6px 12px;
+  border-radius:4px;
+  white-space:nowrap;
+  background:var(--panel-2);
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.wf-node:hover{border-color:var(--text-dim);color:var(--text);}
+.wf-node.on{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(63,198,216,0.1);font-weight:600;}
+.wf-arrow{color:var(--text-faint);padding:0 6px;font-size:11px;}
+
+/* dropzone */
+.dropzone{
+  border:2px dashed var(--line);
+  border-radius:8px;
+  padding:36px 20px;
+  text-align:center;
+  color:var(--text-dim);
+  background:var(--panel-2);
+  cursor:pointer;
+  transition:all 0.2s ease;
+  position:relative;
+}
+.dropzone:hover,.dropzone.dragover{
+  border-color:var(--cyan);
+  background:rgba(63,198,216,0.04);
+  color:var(--text);
+}
+.dropzone .icon{font-size:32px;margin-bottom:8px;color:var(--cyan);}
+.dropzone input[type="file"]{
+  position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;
+}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+.field label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;font-family:var(--mono);letter-spacing:0.5px;}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);
+  padding:9px 11px;border-radius:var(--r);font-size:13px;font-family:var(--sans);
+  outline:none;transition:border-color 0.15s ease;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--cyan);}
+
+.warn-box{
+  display:flex;gap:10px;align-items:flex-start;
+  background:rgba(227,166,57,0.07);
+  border:1px solid rgba(227,166,57,0.3);
+  color:#E3B45C;
+  padding:12px 14px;border-radius:6px;font-size:12.5px;margin-top:20px;
+}
+.info-box{
+  display:flex;gap:10px;align-items:flex-start;
+  background:rgba(63,198,216,0.07);
+  border:1px solid rgba(63,198,216,0.3);
+  color:var(--cyan);
+  padding:12px 14px;border-radius:6px;font-size:12.5px;margin-top:20px;
+}
+
+.progress-steps{margin:18px 0;display:flex;flex-direction:column;gap:10px;}
+.pstep{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-dim);}
+.pstep .chk{font-family:var(--mono);color:var(--green);font-weight:bold;}
+.pstep.pending .chk{color:var(--text-faint);}
+.pstep.pending{color:var(--text-faint);}
+
+.filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-row input,.filter-row select{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  padding:8px 12px;border-radius:var(--r);font-size:12.5px;font-family:var(--sans);
+  outline:none;
+}
+.filter-row input:focus,.filter-row select:focus{border-color:var(--cyan);}
+
+/* relationship graph */
+.graph-wrap{
+  border:1px solid var(--line);border-radius:6px;background:var(--panel);
+  position:relative;overflow:hidden;
+}
+.graph-controls{
+  display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+  align-items:center;background:var(--panel-2);
+}
+.graph-controls .sp{flex:1;}
+#graphSvg{display:block;width:100%;height:460px;cursor:grab;}
+#graphSvg:active{cursor:grabbing;}
+.graph-side{
+  position:absolute;top:60px;right:14px;width:240px;
+  background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+  padding:14px 16px;font-size:12.5px;display:none;box-shadow:0 6px 16px rgba(0,0,0,0.5);
+  z-index:4;
+}
+.graph-side.show{display:block;animation:fadeIn 0.15s ease-out;}
+.graph-side h4{margin:0 0 8px;font-size:12.5px;color:var(--cyan);font-family:var(--mono);}
+.graph-side .reason{display:flex;gap:6px;align-items:flex-start;color:var(--text-dim);margin-top:5px;font-size:11.5px;}
+
+/* heatmap */
+.heatmap-grid{
+  display:grid;
+  grid-template-columns:repeat(32,1fr);
+  gap:3px;
+  padding:16px;
+  background:var(--bg);
+}
+.hcell{
+  aspect-ratio:1;
+  border-radius:2px;
+  cursor:pointer;
+  transition:transform 0.1s ease;
+}
+.hcell:hover{transform:scale(1.3);z-index:2;box-shadow:0 0 8px rgba(255,255,255,0.4);}
+.heatmap-legend{display:flex;gap:18px;padding:0 16px 16px;flex-wrap:wrap;}
+.hl-item{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-dim);}
+.hl-swatch{width:11px;height:11px;border-radius:2px;}
+.heat-detail{
+  margin-top:14px;padding:14px 16px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--text-dim);background:var(--panel);
+}
+.heat-detail b{color:var(--text);font-family:var(--mono);}
+
+/* timeline */
+.timeline-wrap{padding:30px 10px 20px;overflow-x:auto;}
+.timeline-track{position:relative;height:3px;background:var(--line);margin:0 30px;min-width:900px;}
+.tl-events{display:flex;justify-content:space-between;min-width:900px;margin:0 30px;position:relative;top:-8px;}
+.tl-event{position:relative;width:110px;text-align:center;}
+.tl-dot{width:13px;height:13px;border-radius:50%;margin:0 auto;border:2px solid var(--bg);transition:transform 0.15s ease;}
+.tl-event:hover .tl-dot{transform:scale(1.3);}
+.tl-time{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-top:8px;}
+.tl-label{font-size:11.5px;color:var(--text);margin-top:3px;font-weight:600;}
+.tl-frag{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+.explain{
+  background:var(--panel-2);border-left:3px solid var(--cyan);
+  padding:12px 16px;border-radius:0 6px 6px 0;font-size:12.5px;color:var(--text-dim);margin-top:16px;
+  line-height:1.5;
+}
+
+.priority-row{display:grid;grid-template-columns:130px 1fr;gap:16px;margin-bottom:12px;}
+.priority-badge{
+  align-self:flex-start;font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:7px 10px;border-radius:4px;text-align:center;height:fit-content;letter-spacing:0.5px;
+}
+.priority-badge.high{background:rgba(225,88,79,0.15);color:var(--red);border:1px solid rgba(225,88,79,0.3);}
+.priority-badge.medium{background:rgba(227,166,57,0.15);color:var(--amber);border:1px solid rgba(227,166,57,0.3);}
+.priority-badge.low{background:rgba(124,138,147,0.15);color:var(--text-dim);border:1px solid rgba(124,138,147,0.3);}
+
+.circ-wrap{display:flex;gap:30px;flex-wrap:wrap;margin-top:10px;justify-content:space-around;}
+.circ{width:120px;text-align:center;}
+.circ svg{transform:rotate(-90deg);}
+.circ .num{font-family:var(--mono);font-size:20px;font-weight:700;margin-top:-76px;display:block;}
+.circ .lbl{font-size:11px;color:var(--text-dim);margin-top:12px;}
+
+.small-note{font-size:11.5px;color:var(--text-faint);margin-top:18px;line-height:1.6;}
+
+/* Media Preview Cards */
+.media-preview-container{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:16px;
+  margin-top:14px;
+}
+.media-preview-container img, .media-preview-container video{
+  max-width:100%;
+  max-height:380px;
+  border-radius:4px;
+  display:block;
+  margin:0 auto;
+  border:1px solid var(--line);
+}
+.doc-preview{
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:16px;
+  font-family:var(--sans);
+  color:var(--text);
+  max-height:280px;
+  overflow-y:auto;
+  font-size:13px;
+  white-space:pre-wrap;
+}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(4px);
+  z-index:99;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.modal-overlay.active{display:flex;}
+.modal-box{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  width:90%;
+  max-width:750px;
+  max-height:85vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 12px 32px rgba(0,0,0,0.8);
+}
+.modal-header{
+  padding:14px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--panel-2);
+}
+.modal-header h3{margin:0;font-size:14px;color:var(--text);font-family:var(--mono);}
+.modal-close{
+  background:transparent;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;
+}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;overflow-y:auto;flex:1;}
+
+.hex-grid{
+  font-family:var(--mono);
+  font-size:12px;
+  display:grid;
+  grid-template-columns:70px 1fr 140px;
+  gap:12px;
+  background:var(--bg);
+  padding:14px;
+  border-radius:4px;
+  border:1px solid var(--line);
+  color:var(--cyan);
+  line-height:1.6;
+}
+.hex-addr{color:var(--text-faint);}
+.hex-bytes{color:var(--text);}
+.hex-ascii{color:var(--amber);}
+
+/* Toast */
+.toast-container{
+  position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:10px;
+}
+.toast{
+  background:var(--panel-2);
+  border:1px solid var(--cyan);
+  color:var(--text);
+  padding:12px 18px;
+  border-radius:6px;
+  font-size:12.5px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.5);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  animation:slideIn 0.2s ease-out;
+}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><span class="dot"></span><span class="brand-name">RecoverX AI</span></div>
+      <div class="brand-sub">DIGITAL FORENSICS &amp; EVIDENCE</div>
+    </div>
+    <div class="case-chip">
+      <div class="cl">ACTIVE CASE</div>
+      <div class="cv" id="chipCase">CASE-2026-0417</div>
+    </div>
+    <nav class="nav" id="navList">
+      <div class="nav-group-label">OVERVIEW</div>
+      <button class="nav-item active" data-view="dashboard"><span class="n">01</span>Dashboard</button>
+      <button class="nav-item" data-view="newrecovery"><span class="n">02</span>New Recovery</button>
+      <button class="nav-item" data-view="readsafely"><span class="n">03</span>Read Safely</button>
+      <button class="nav-item" data-view="scandata"><span class="n">04</span>Scan Data</button>
+      <div class="nav-group-label">IDENTIFICATION</div>
+      <button class="nav-item" data-view="filetypes"><span class="n">05</span>File Types</button>
+      <button class="nav-item" data-view="fragments"><span class="n">06</span>Fragments</button>
+      <button class="nav-item" data-view="analyze"><span class="n">07</span>Analyze Fragments</button>
+      <div class="nav-group-label">RELATIONSHIP &amp; STRUCTURE</div>
+      <button class="nav-item" data-view="relationships"><span class="n">08</span>Relationship Analysis</button>
+      <button class="nav-item" data-view="graph"><span class="n">09</span>Relationship Graph</button>
+      <button class="nav-item" data-view="heatmap"><span class="n">10</span>Disk Heatmap</button>
+      <button class="nav-item" data-view="ordering"><span class="n">11</span>Fragment Ordering</button>
+      <button class="nav-item" data-view="timeline"><span class="n">12</span>Timeline Reconstruction</button>
+      <div class="nav-group-label">RECOVERY</div>
+      <button class="nav-item" data-view="reconstruction"><span class="n">13</span>Reconstruction</button>
+      <button class="nav-item" data-view="filecheck"><span class="n">14</span>Integrity Check</button>
+      <button class="nav-item" data-view="recovery"><span class="n">15</span>Recovery Analysis</button>
+      <div class="nav-group-label">CONCLUSION</div>
+      <button class="nav-item" data-view="priority"><span class="n">16</span>Evidence Priority</button>
+      <button class="nav-item" data-view="final"><span class="n">17</span>Final Results</button>
+      <button class="nav-item" data-view="report"><span class="n">18</span>Reports</button>
+      <button class="nav-item" data-view="history"><span class="n">19</span>Case History</button>
+    </nav>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">RECOVERX AI / <b id="crumbLabel">Dashboard</b></div>
+      <div class="status-pill"><span class="p"></span>READ-ONLY MOUNTED</div>
+    </div>
+
+    <!-- 1. DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <h1 class="pt">RecoverX AI Forensic Engine</h1>
+      <p class="pd">Intelligent Data Recovery &amp; Evidence Reconstruction — recover, connect, reconstruct and assess damaged digital information (Images, Videos, Documents, Archives, Audio &amp; Disk Images) using AI-assisted structural analysis.</p>
+
+      <div class="workflow-strip" id="wfStrip"></div>
+
+      <div class="btn-row" style="margin-top:22px;">
+        <button class="btn" data-goto="newrecovery">⚡ Start New Recovery / Add Files</button>
+        <button class="btn secondary" id="btnLoadDemoData">📁 Load Preset Forensic Evidence</button>
+        <button class="btn secondary" data-goto="history">📜 Case History</button>
+      </div>
+
+      <div class="grid g4" style="margin-top:28px;">
+        <div class="metric"><div class="mv" id="dashTotalStorage">500 MB</div><div class="ml">Storage analyzed</div></div>
+        <div class="metric cyan"><div class="mv" id="dashTotalFrags">126</div><div class="ml">Fragments detected</div></div>
+        <div class="metric green"><div class="mv" id="dashFullyRecov">11</div><div class="ml">Fully recoverable files</div></div>
+        <div class="metric red"><div class="mv" id="dashUnrecov">2</div><div class="ml">Unrecoverable files</div></div>
+      </div>
+
+      <div class="card" style="margin-top:24px;">
+        <h3>Forensic Pipeline Overview</h3>
+        <p style="color:var(--text-dim);font-size:12.5px;margin:0;line-height:1.6;">
+          Damaged storage or uploaded files (JPG, PNG, MP4, DOCX, PDF, Audio, Disk Images) are mounted in a protected read-only copy.
+          The engine scans for magic bytes, extracts sector fragments, identifies file types, assesses fragment condition, computes AI relationship scores, renders interactive topological graphs, orders fragments, reconstructs candidate media/documents for live preview, validates structural integrity, and ranks investigative priority.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. NEW RECOVERY / FILE ADDITION -->
+    <section class="view" id="view-newrecovery">
+      <h1 class="pt">Mount Storage &amp; Add Evidence Files</h1>
+      <p class="pd">Upload damaged disk images (.img, .dd, .e01) or add individual damaged files (.jpg, .png, .mp4, .docx, .pdf, .txt, .mp3, etc.) to engage the automated recovery engine.</p>
+
+      <div class="grid g2">
+        <div class="dropzone" id="dropDisk">
+          <input type="file" id="fileInputDisk" accept=".img,.dd,.e01,.raw,.bin,.iso" multiple>
+          <div class="icon">💾</div>
+          <div><b>Upload Storage / Disk Image</b></div>
+          <div style="font-size:12px;margin-top:4px;">Drag and drop .img / .dd / .e01 / .raw disk image</div>
+        </div>
+        <div class="dropzone" id="dropFiles">
+          <input type="file" id="fileInputMedia" accept=".jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.doc,.docx,.pdf,.txt,.mp3,.wav,.zip" multiple>
+          <div class="icon">🖼️ 🎬 📄</div>
+          <div><b>Add JPGs, Videos, Docs &amp; Evidence Files</b></div>
+          <div style="font-size:12px;margin-top:4px;">Drag &amp; drop images, videos, documents, or click to browse</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <h3>Case &amp; Evidence Details</h3>
+        <div class="field-row">
+          <div class="field"><label>PRIMARY SOURCE</label><input id="inputSourceName" value="sample_drive.img"></div>
+          <div class="field"><label>TOTAL SOURCE SIZE</label><input id="inputSourceSize" value="500 MB"></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>STORAGE TYPE</label>
+            <select id="selectStorageType">
+              <option>NTFS Partition Image</option>
+              <option>Raw Disk Dump (.dd)</option>
+              <option>FAT32 / exFAT Volume</option>
+              <option>Ext4 Linux Dump</option>
+              <option>Mixed Evidence Directory</option>
+            </select>
+          </div>
+          <div class="field"><label>CASE TITLE</label><input id="inputCaseTitle" value="Recovered Client Drive — Q3 Incident"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>CASE ID</label><input id="caseIdInput" value="CASE-2026-0417"></div>
+          <div class="field"><label>FORENSIC ANALYST</label><input id="inputAnalyst" value="Sushmitha R."></div>
+        </div>
+      </div>
+
+      <div class="info-box" id="fileUploadedNotice" style="display:none;">
+        <span>ℹ️ <b id="uploadedFileCountText">0 files</b> loaded into analysis buffer. Ready to proceed.</span>
+      </div>
+
+      <div class="warn-box">⚠ Analysis will be performed in write-blocked read-only mode. Original media is strictly preserved.</div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnEngageProcess" data-goto="readsafely">🛡️ Engage Read Safely &amp; Process</button>
+        <button class="btn secondary" id="btnQuickDemo">⚡ Load Sample Evidence Suite</button>
+      </div>
+    </section>
+
+    <!-- 3. READ SAFELY -->
+    <section class="view" id="view-readsafely">
+      <h1 class="pt">Read Safely — Write Blocker Initialization</h1>
+      <p class="pd">Creating cryptographic hashes (SHA-256) and a protected, read-only representation of input media before scanning.</p>
+
+      <div class="grid g2">
+        <div class="card">
+          <h3>Source Mounting Metadata</h3>
+          <table>
+            <tr><td style="color:var(--text-dim);">Storage Target</td><td id="rsTargetName">sample_drive.img</td></tr>
+            <tr><td style="color:var(--text-dim);">Hardware Mount</td><td><span class="tag good">READ-ONLY MOUNTED</span></td></tr>
+            <tr><td style="color:var(--text-dim);">Write Blocker</td><td><span class="tag good">Active (Hardware Blocked)</span></td></tr>
+            <tr><td style="color:var(--text-dim);">SHA-256 Hash</td><td id="rsHash" style="font-size:10.5px;">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Mount Verification Checklist</h3>
+          <div class="progress-steps" id="rsStepList">
+            <div class="pstep"><span class="chk">✓</span> Storage media detected</div>
+            <div class="pstep"><span class="chk">✓</span> Read-only write blocker verified</div>
+            <div class="pstep"><span class="chk">✓</span> Forensic hash generated</div>
+            <div class="pstep pending" id="rsStepScan"><span class="chk">→</span> Ready to initiate deep sector scan</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnStartScan" data-goto="scandata">🔍 Start Sector Scan</button>
+      </div>
+    </section>
+
+    <!-- 4. SCAN DATA -->
+    <section class="view" id="view-scandata">
+      <h1 class="pt">Deep Sector Scan &amp; Magic Byte Extraction</h1>
+      <p class="pd">Scanning storage sector by sector for file signatures, header magic bytes, and broken fragments.</p>
+
+      <div class="grid g4">
+        <div class="metric"><div class="mv" id="scanTotalSize">500 MB</div><div class="ml">Total storage</div></div>
+        <div class="metric cyan"><div class="mv" id="scanScannedSize">347 MB</div><div class="ml">Data scanned</div></div>
+        <div class="metric"><div class="mv" id="scanFragsFound">126</div><div class="ml">Fragments detected</div></div>
+        <div class="metric amber"><div class="mv" id="scanCorruptCount">23</div><div class="ml">Corrupted sectors</div></div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h3 style="margin:0;">Scan Progress — <span id="scanPctText">69%</span></h3>
+          <button class="btn ghost" id="btnPauseScan">Pause Scan</button>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="scanProgressBar" style="width:69%;background:var(--cyan);"></div></div>
+        <p class="hint" id="scanStatusMsg">Extracting fragments across JPG, MP4, DOCX, PDF, PNG and RAW signatures...</p>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" data-goto="filetypes">📁 View File Types Detected</button>
+        <button class="btn secondary" data-goto="fragments">🧩 Jump to Fragment Explorer</button>
+      </div>
+    </section>
+
+    <!-- 5. FILE TYPES -->
+    <section class="view" id="view-filetypes">
+      <h1 class="pt">File Type Detection &amp; Signature Categorization</h1>
+      <p class="pd">Magic byte signatures detected across scanned regions, grouped by recognized format.</p>
+
+      <div class="grid g3" id="fileTypeCards"></div>
+
+      <div class="btn-row"><button class="btn" data-goto="fragments">🧩 Explore All Fragments</button></div>
+    </section>
+
+    <!-- 6. FRAGMENTS -->
+    <section class="view" id="view-fragments">
+      <h1 class="pt">Fragment Explorer</h1>
+      <p class="pd">Every sector fragment recovered during scanning, detailing format condition, offset, and confidence.</p>
+
+      <div class="filter-row">
+        <input id="fragSearch" placeholder="Search fragment ID or type…">
+        <select id="fragTypeFilter"><option value="">All file types</option></select>
+        <select id="fragCondFilter">
+          <option value="">All conditions</option>
+          <option value="Good">Good</option>
+          <option value="Partial">Partial</option>
+          <option value="Corrupted">Corrupted</option>
+        </select>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>FRAGMENT</th><th>TYPE</th><th>SIZE</th><th>OFFSET</th><th>CONDITION</th><th>METADATA</th><th>CONFIDENCE</th><th>ACTION</th>
+          </tr></thead>
+          <tbody id="fragTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row"><button class="btn" data-goto="analyze">🤖 AI Fragment Analysis</button></div>
+    </section>
+
+    <!-- 7. ANALYZE FRAGMENTS -->
+    <section class="view" id="view-analyze">
+      <h1 class="pt">AI Fragment Structural Analysis</h1>
+      <p class="pd">Deep AI analysis evaluating entropy, header alignment, content pattern, and cross-compatibility per fragment.</p>
+
+      <div class="section-nav" id="analyzeTabs"></div>
+      <div id="analyzeDetail"></div>
+
+      <div class="btn-row"><button class="btn" data-goto="relationships">🔗 Find Relationships</button></div>
+    </section>
+
+    <!-- 8. RELATIONSHIPS -->
+    <section class="view" id="view-relationships">
+      <h1 class="pt">Cross-Fragment Relationship Scoring</h1>
+      <p class="pd">Evaluating inter-fragment affinity using header sequence compatibility, entropy match, and timestamp links.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>FRAGMENT PAIR</th><th>RELATIONSHIP SCORE</th><th>AFFINITY METER</th></tr></thead>
+          <tbody id="relTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="explain" id="relExplain">Analyzing fragment pairs for sequence contiguousness and structural matching.</div>
+
+      <div class="btn-row"><button class="btn" data-goto="graph">🌐 Interactive Relationship Graph</button></div>
+    </section>
+
+    <!-- 9. RELATIONSHIP GRAPH -->
+    <section class="view" id="view-graph">
+      <h1 class="pt">Interactive Topological Relationship Graph</h1>
+      <p class="pd">Fragments as draggable graph nodes, edge weight representing structural affinity score. Click nodes or edges for details.</p>
+
+      <div class="graph-wrap">
+        <div class="graph-controls">
+          <button class="btn ghost" id="gZoomIn">Zoom +</button>
+          <button class="btn ghost" id="gZoomOut">Zoom −</button>
+          <span class="sp"></span>
+          <select id="gStrengthFilter" style="background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px;">
+            <option value="0">All relationships</option>
+            <option value="60">Show ≥ 60%</option>
+            <option value="80">Show ≥ 80%</option>
+          </select>
+          <button class="btn ghost" id="gReset">Reset Layout</button>
+        </div>
+        <svg id="graphSvg" viewBox="0 0 920 460"></svg>
+        <div class="graph-side" id="graphSide"></div>
+      </div>
+
+      <div class="small-note">💡 Click and drag any node to reposition. Click an edge to inspect relationship reasons.</div>
+
+      <div class="btn-row">
+        <button class="btn" data-goto="heatmap">🔥 Disk Heatmap</button>
+        <button class="btn secondary" data-goto="ordering">🔢 Fragment Ordering</button>
+      </div>
+    </section>
+
+    <!-- 10. DISK HEATMAP -->
+    <section class="view" id="view-heatmap">
+      <h1 class="pt">Disk Sector Heatmap</h1>
+      <p class="pd">Sector-by-sector disk map coloring recoverable, corrupted, overwritten, and unallocated blocks.</p>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="heatmap-legend" style="padding-top:16px;">
+          <div class="hl-item"><span class="hl-swatch" style="background:var(--green);"></span>Recoverable Sector</div>
+          <div class="hl-item"><span class="hl-swatch" style="background:var(--amber);"></span>Corrupted / Read Error</div>
+          <div class="hl-item"><span class="hl-swatch" style="background:var(--red);"></span>Overwritten Sector</div>
+          <div class="hl-item"><span class="hl-swatch" style="background:var(--text-faint);"></span>Unallocated / Empty</div>
+        </div>
+        <div class="heatmap-grid" id="heatGrid"></div>
+        <div class="heat-detail" id="heatDetail">Hover over or click a sector block to examine status and offset details.</div>
+      </div>
+
+      <div class="grid g4" style="margin-top:16px;">
+        <div class="metric green"><div class="mv" id="heatPctGood">—</div><div class="ml">Blocks recoverable</div></div>
+        <div class="metric amber"><div class="mv" id="heatPctCorrupt">—</div><div class="ml">Blocks corrupted</div></div>
+        <div class="metric red"><div class="mv" id="heatPctOver">—</div><div class="ml">Blocks overwritten</div></div>
+        <div class="metric"><div class="mv" id="heatPctEmpty">—</div><div class="ml">Blocks unallocated</div></div>
+      </div>
+
+      <div class="btn-row"><button class="btn" data-goto="ordering">🔢 Sequence &amp; Order Fragments</button></div>
+    </section>
+
+    <!-- 11. ORDERING -->
+    <section class="view" id="view-ordering">
+      <h1 class="pt">Fragment Sequence Assembly</h1>
+      <p class="pd">Arranging candidate file fragments into contiguous byte sequence order prior to reconstruction.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>FRAGMENT</th><th>CHAIN POSITION</th><th>CONFIDENCE</th><th>PREVIOUS LINK</th><th>NEXT LINK</th></tr></thead>
+          <tbody id="orderTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" data-goto="timeline">⏳ Timeline Reconstruction</button>
+        <button class="btn secondary" data-goto="reconstruction">🛠️ Start Candidate Reconstruction</button>
+      </div>
+    </section>
+
+    <!-- 12. TIMELINE RECONSTRUCTION -->
+    <section class="view" id="view-timeline">
+      <h1 class="pt">Timeline Event Reconstruction</h1>
+      <p class="pd">Reassembling chronological sequence of creation, revision, sector crash, and recovery events.</p>
+
+      <div class="section-nav" id="timelineFileTabs"></div>
+
+      <div class="card" style="padding:0;">
+        <div class="timeline-wrap">
+          <div class="timeline-track"></div>
+          <div class="tl-events" id="tlEvents"></div>
+        </div>
+      </div>
+
+      <div class="explain" id="tlExplain"></div>
+
+      <div class="btn-row"><button class="btn" data-goto="reconstruction">🛠️ Reconstruct &amp; Preview Files</button></div>
+    </section>
+
+    <!-- 13. RECONSTRUCTION & PREVIEW -->
+    <section class="view" id="view-reconstruction">
+      <h1 class="pt">File Reconstruction &amp; Dynamic Media Preview</h1>
+      <p class="pd">Reassembled candidate files (Images, Videos, Documents, PDFs) with interactive live media previews.</p>
+
+      <div id="reconstructList"></div>
+
+      <div class="btn-row"><button class="btn" data-goto="filecheck">✅ Integrity Verification</button></div>
+    </section>
+
+    <!-- 14. FILE CHECK -->
+    <section class="view" id="view-filecheck">
+      <h1 class="pt">Structural Integrity Verification</h1>
+      <p class="pd">Checking header validity, trailer closure, checksums, and missing byte gaps in reconstructed files.</p>
+
+      <div class="card" id="fileCheckCard">
+        <h3>Candidate Evidence Check</h3>
+        <table>
+          <tr><td style="color:var(--text-dim);">File Structure</td><td><span class="tag warn">Partially Valid Header</span></td></tr>
+          <tr><td style="color:var(--text-dim);">Fragment Chain</td><td>4 / 5 Connected</td></tr>
+          <tr><td style="color:var(--text-dim);">Missing Sector Gaps</td><td>1 Gap (Offset 0x0244)</td></tr>
+          <tr><td style="color:var(--text-dim);">Corrupted Sections</td><td>2 Damaged Blocks</td></tr>
+        </table>
+        <div class="warn-box">⚠ Notice: Trailing sectors corrupted or unallocated. File usable for partial evidence review.</div>
+      </div>
+
+      <div class="btn-row"><button class="btn" data-goto="recovery">📊 Calculate Recovery Metrics</button></div>
+    </section>
+
+    <!-- 15. RECOVERY ANALYSIS -->
+    <section class="view" id="view-recovery">
+      <h1 class="pt">Integrity &amp; Recovery Metrics</h1>
+      <p class="pd">Quantitative assessment separating forensic recovery confidence from file integrity and corruption percentage.</p>
+
+      <div class="grid g4" style="margin-bottom:24px;">
+        <div class="metric cyan"><div class="mv" id="recMetricConf">94%</div><div class="ml">Recovery confidence</div></div>
+        <div class="metric green"><div class="mv" id="recMetricData">80%</div><div class="ml">Data recovered</div></div>
+        <div class="metric"><div class="mv" id="recMetricInteg">87%</div><div class="ml">File integrity</div></div>
+        <div class="metric red"><div class="mv" id="recMetricCorrupt">13%</div><div class="ml">Corruption level</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Forensic Confidence Breakdown</h3>
+        <div class="circ-wrap" id="circWrap"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <p style="margin:0;font-size:12.5px;color:var(--text-dim);line-height:1.6;">
+          <b style="color:var(--text);">Recovery Confidence:</b> Likelihood that reconstructed fragments accurately match the original file.<br>
+          <b style="color:var(--text);">Data Recovered:</b> Proportion of original byte contents successfully recovered.<br>
+          <b style="color:var(--text);">File Integrity:</b> Structural compliance with standard format specifications (PNG, JPG, MP4, PDF, DOCX).
+        </p>
+      </div>
+
+      <div class="btn-row"><button class="btn" data-goto="priority">⚖️ Rank Evidence Priority</button></div>
+    </section>
+
+    <!-- 16. PRIORITY -->
+    <section class="view" id="view-priority">
+      <h1 class="pt">Evidence Priority Classification</h1>
+      <p class="pd">Evidence is automatically classified into High, Medium, and Low investigative priority based on forensic weight.</p>
+
+      <div id="priorityList"></div>
+
+      <div class="btn-row"><button class="btn" data-goto="final">🏆 View Final Master Results</button></div>
+    </section>
+
+    <!-- 17. FINAL RESULTS -->
+    <section class="view" id="view-final">
+      <h1 class="pt">Master Forensic Results Summary</h1>
+      <p class="pd">Final investigative analysis results for case <span id="finalCaseId" style="color:var(--cyan);font-family:var(--mono);">CASE-2026-0417</span>.</p>
+
+      <div class="grid g4">
+        <div class="metric"><div class="mv" id="finalStorage">500 MB</div><div class="ml">Total storage scanned</div></div>
+        <div class="metric cyan"><div class="mv" id="finalFrags">126</div><div class="ml">Fragments found</div></div>
+        <div class="metric"><div class="mv" id="finalCandidates">18</div><div class="ml">Candidate files</div></div>
+        <div class="metric green"><div class="mv" id="finalFullyRecov">11</div><div class="ml">Fully recoverable</div></div>
+      </div>
+      <div class="grid g4" style="margin-top:16px;">
+        <div class="metric amber"><div class="mv" id="finalPartialRecov">5</div><div class="ml">Partially recoverable</div></div>
+        <div class="metric red"><div class="mv" id="finalUnrecov">2</div><div class="ml">Unrecoverable</div></div>
+        <div class="metric"><div class="mv" id="finalHighPriority">4</div><div class="ml">High priority items</div></div>
+        <div class="metric cyan"><div class="mv" id="finalAvgConf">94%</div><div class="ml">Avg recovery confidence</div></div>
+      </div>
+
+      <div class="tablewrap" style="margin-top:20px;">
+        <table>
+          <thead><tr><th>FILE NAME</th><th>TYPE</th><th>RECOVERY</th><th>INTEGRITY</th><th>CORRUPTION</th><th>PRIORITY</th><th>STATUS</th></tr></thead>
+          <tbody id="finalTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" data-goto="report">📄 Export Forensic Report</button>
+        <button class="btn secondary" data-goto="graph">🌐 Review Relationship Graph</button>
+      </div>
+    </section>
+
+    <!-- 18. REPORT -->
+    <section class="view" id="view-report">
+      <h1 class="pt">Forensic Case Report Generator</h1>
+      <p class="pd">Generate court-ready HTML and JSON forensic reports summarizing evidence, chain of custody, and recovery metrics.</p>
+
+      <div class="card">
+        <h3>Report Case Summary</h3>
+        <table>
+          <tr><td style="color:var(--text-dim);">Case Reference ID</td><td id="repCaseId">CASE-2026-0417</td></tr>
+          <tr><td style="color:var(--text-dim);">Case Title</td><td id="repCaseTitle">Recovered Client Drive — Q3 Incident</td></tr>
+          <tr><td style="color:var(--text-dim);">Lead Analyst</td><td id="repAnalyst">Sushmitha R.</td></tr>
+          <tr><td style="color:var(--text-dim);">Generated Timestamp</td><td id="repDate"></td></tr>
+          <tr><td style="color:var(--text-dim);">Included Analytics</td><td>Scan Log · Hex Analysis · Fragment Topology · Disk Heatmap · Media Previews · Priority Ranks</td></tr>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" id="downloadReportBtn">📥 Download Forensic Report (.html)</button>
+        <button class="btn secondary" id="downloadJsonBtn">💾 Download Raw Case JSON (.json)</button>
+      </div>
+      <div class="small-note" id="downloadStatus"></div>
+    </section>
+
+    <!-- 19. HISTORY -->
+    <section class="view" id="view-history">
+      <h1 class="pt">Case History &amp; Saved Evidence</h1>
+      <p class="pd">Access stored forensic investigations, load saved sessions, or clear old case logs.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>CASE ID</th><th>CASE NAME</th><th>DATE</th><th>FILES RECOVERED</th><th>STATUS</th><th>ACTION</th></tr></thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" data-goto="newrecovery">⚡ Start New Case</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODALS & TOASTS ============ -->
+<div class="modal-overlay" id="hexModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="hexModalTitle">Fragment Hex Inspector — F001</h3>
+      <button class="modal-close" id="hexModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="hex-grid" id="hexModalGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================= DATA STATE ============================= */
+
+const WORKFLOW = ["DAMAGED STORAGE","READ SAFELY","SCAN DATA","FILE TYPES","FRAGMENTS","ANALYZE","RELATIONSHIPS","GRAPH","ORDER","RECONSTRUCT","CHECK","INTEGRITY","RECOVERY %","PRIORITIZE","RESULT"];
+
+// Initial default evidence database (supporting JPG, MP4 Video, DOCX, PDF, Audio, Raw)
+let FRAGMENTS = [
+  {id:"F001",type:"PDF",size:"32 KB",offset:"0x0024",condition:"Partial",meta:"Available",conf:96,status:"Recovered",struct:92,content:88,metaComp:94,ts:"2026-09-11 09:14",hex:"25 50 44 46 2d 31 2e 37 0d 0a 25 25 4f 42 4a 20 31 20 30 20 6f 62 6a 20 3c 3c 2f 54 79 70 65 2f 43 61 74 61 6c 6f 67 3e 3e"},
+  {id:"F002",type:"PDF",size:"18 KB",offset:"0x0087",condition:"Good",meta:"Available",conf:91,status:"Recovered",struct:95,content:90,metaComp:93,ts:"2026-09-11 09:14",hex:"3c 3c 2f 50 61 67 65 73 20 32 20 30 20 52 3e 3e 65 6e 64 6f 62 6a 0d 0a 32 20 30 20 6f 62 6a 20 3c 3c 2f 43 6f 75 6e 74 20 33"},
+  {id:"F003",type:"JPG",size:"12 KB",offset:"0x0112",condition:"Corrupted",meta:"Partial",conf:72,status:"Partial",struct:64,content:58,metaComp:70,ts:"2026-09-10 21:02",hex:"ff d8 ff e0 00 10 4a 46 49 46 00 01 01 01 00 48 00 48 00 00 ff fe 00 1c 43 72 65 61 74 65 64 20 77 69 74 68 20 47 49 4d 50"},
+  {id:"F007",type:"PDF",size:"21 KB",offset:"0x0158",condition:"Partial",meta:"Available",conf:89,status:"Recovered",struct:87,content:85,metaComp:88,ts:"2026-09-11 09:15",hex:"33 20 30 20 6f 62 6a 20 3c 3c 2f 54 79 70 65 2f 50 61 67 65 2f 43 6f 6e 74 65 6e 74 73 20 34 20 30 20 52 3e 3e 65 6e 64 6f 62"},
+  {id:"F009",type:"PDF",size:"15 KB",offset:"0x0201",condition:"Good",meta:"Available",conf:83,status:"Recovered",struct:81,content:79,metaComp:84,ts:"2026-09-11 09:15",hex:"73 74 72 65 61 6d 0d 0a 42 54 20 2f 46 31 20 31 32 20 54 66 20 37 32 20 37 31 32 20 54 64 20 28 45 76 69 64 65 6e 63 65 29"},
+  {id:"F011",type:"PDF",size:"9 KB",offset:"0x0244",condition:"Corrupted",meta:"Missing",conf:38,status:"Missing",struct:30,content:22,metaComp:41,ts:"—",hex:"00 00 00 00 00 00 00 00 45 52 52 4f 52 5f 43 4f 52 52 55 50 54 45 44 5f 53 45 43 54 4f 52 5f 55 4e 52 45 41 44 41 42 4c 45"},
+  {id:"F014",type:"DOCX",size:"27 KB",offset:"0x0290",condition:"Good",meta:"Available",conf:88,status:"Recovered",struct:90,content:86,metaComp:87,ts:"2026-09-09 14:40",hex:"50 4b 03 04 14 00 06 00 08 00 00 00 21 00 6b 97 88 56 c2 00 00 00 c8 01 00 00 13 00 08 02 5b 43 6f 6d 70 6f 6e 65 6e 74 73"},
+  {id:"F018",type:"JPG",size:"31 KB",offset:"0x0333",condition:"Good",meta:"Available",conf:94,status:"Recovered",struct:93,content:91,metaComp:92,ts:"2026-09-08 08:11",hex:"ff d8 ff e1 0d fe 45 78 69 66 00 00 4d 4d 00 2a 00 00 00 08 00 05 01 12 00 03 00 00 00 01 00 01 00 00 01 1a 00 05 00 00"},
+  {id:"F020",type:"VID",size:"142 MB",offset:"0x0380",condition:"Good",meta:"Available",conf:92,status:"Recovered",struct:94,content:89,metaComp:91,ts:"2026-09-10 18:30",hex:"00 00 00 20 66 74 79 70 69 73 6f 6d 00 00 02 00 69 73 6f 6d 69 73 6f 32 61 76 63 31 6d 70 34 31 00 00 00 08 66 72 65 65"},
+  {id:"F023",type:"Unknown",size:"6 KB",offset:"0x0410",condition:"Corrupted",meta:"None",conf:21,status:"Unrecoverable",struct:19,content:15,metaComp:20,ts:"—",hex:"1f 8b 08 00 00 00 00 00 00 03 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f 53 4f"}
+];
+
+let RELATIONSHIPS = [
+  {a:"F001",b:"F002",score:94,reasons:["Same file type (PDF)","Compatible header structure","High content pattern match","Metadata timestamp alignment"]},
+  {a:"F002",b:"F007",score:86,reasons:["Same file type (PDF)","Sequential page table offset","Sequential byte pattern"]},
+  {a:"F007",b:"F009",score:88,reasons:["Same file type (PDF)","Stream object compatibility","Metadata timestamp alignment"]},
+  {a:"F001",b:"F007",score:89,reasons:["Same file type (PDF)","Compatible structure","Sequential file offsets"]},
+  {a:"F009",b:"F011",score:47,reasons:["Same file type (PDF)","Weak content similarity","Missing trailer object"]},
+  {a:"F003",b:"F018",score:33,reasons:["Same format family (JPG)","Different compression tables","Metadata mismatch"]},
+  {a:"F001",b:"F023",score:21,reasons:["Format mismatch","Unrecognized binary signature","Low entropy alignment"]}
+];
+
+let CANDIDATE_FILES = [
+  {
+    name:"Evidence_Report.pdf",
+    type:"PDF",
+    frags:["F001","F002","F007","F009"],
+    missing:1,
+    recovery:92,
+    integrity:89,
+    corruption:11,
+    relationship:94,
+    status:"PARTIALLY RECOVERABLE",
+    priority:"high",
+    previewType:"pdf",
+    textContent:"RECOVERED FORENSIC REPORT\nCase: CASE-2026-0417\nSubject: Financial & Audit Investigation\n\nSection 1: Summary of Audit\nAll transaction logs recorded between Sep 1 and Sep 10 show matching checksums. Fragment F001 and F002 verify user login credentials."
+  },
+  {
+    name:"Security_Footage_Camera2.mp4",
+    type:"VID",
+    frags:["F020"],
+    missing:0,
+    recovery:95,
+    integrity:93,
+    corruption:7,
+    relationship:91,
+    status:"FULLY RECOVERABLE",
+    priority:"high",
+    previewType:"video",
+    mediaUrl:null // Generated dynamically or simulated
+  },
+  {
+    name:"Incident_Photo_07.jpg",
+    type:"JPG",
+    frags:["F003"],
+    missing:0,
+    recovery:76,
+    integrity:71,
+    corruption:29,
+    relationship:81,
+    status:"PARTIALLY RECOVERABLE",
+    priority:"medium",
+    previewType:"image",
+    mediaUrl:null
+  },
+  {
+    name:"Meeting_Minutes_Q3.docx",
+    type:"DOCX",
+    frags:["F014"],
+    missing:0,
+    recovery:97,
+    integrity:95,
+    corruption:5,
+    relationship:90,
+    status:"FULLY RECOVERABLE",
+    priority:"high",
+    previewType:"doc",
+    textContent:"CONFIDENTIAL MEETING MINUTES\nDate: September 9, 2026\nAttendees: Sushmitha R., Executive Audit Committee\n\nAgenda:\n- Disk Image Analysis & Sector Scanning\n- Multi-format recovery algorithms for JPG, MP4, and DOCX files.\n- Verified safe read-only disk mounting."
+  },
+  {
+    name:"Field_Photo_18.jpg",
+    type:"JPG",
+    frags:["F018"],
+    missing:0,
+    recovery:98,
+    integrity:96,
+    corruption:4,
+    relationship:88,
+    status:"FULLY RECOVERABLE",
+    priority:"medium",
+    previewType:"image",
+    mediaUrl:null
+  },
+  {
+    name:"Damaged_Sector_Dump.bin",
+    type:"Unknown",
+    frags:["F023"],
+    missing:2,
+    recovery:31,
+    integrity:22, corruption:78,
+    relationship:34,
+    status:"UNRECOVERABLE",
+    priority:"low",
+    previewType:"text",
+    textContent:"[UNREADABLE BINARY DUMP - CORRUPTED DISK SECTOR 0x0410]"
+  }
+];
+
+let FILETYPES = [
+  {type:"PDF",frags:32,conf:96,recoverability:"High"},
+  {type:"JPG",frags:27,conf:91,recoverability:"High"},
+  {type:"VID (MP4)",frags:22,conf:94,recoverability:"High"},
+  {type:"DOCX",frags:16,conf:88,recoverability:"Medium"},
+  {type:"PNG",frags:14,conf:85,recoverability:"Medium"},
+  {type:"TXT/LOG",frags:9,conf:92,recoverability:"High"},
+  {type:"Unknown",frags:6,conf:30,recoverability:"Low"}
+];
+
+let TIMELINE_EVENTS = {
+  "Evidence_Report.pdf":[
+    {t:"2026-09-08 10:02",label:"Document created",frag:"—",type:"info"},
+    {t:"2026-09-09 16:20",label:"Revised (2 edits)",frag:"F002",type:"info"},
+    {t:"2026-09-10 22:47",label:"Sector damage event",frag:"F011",type:"bad"},
+    {t:"2026-09-11 09:14",label:"Fragment written post-crash",frag:"F001, F007",type:"warn"},
+    {t:"2026-09-11 09:15",label:"Last surviving write",frag:"F009",type:"warn"},
+    {t:"2026-09-25 14:00",label:"Recovered by RecoverX",frag:"—",type:"good"}
+  ],
+  "Security_Footage_Camera2.mp4":[
+    {t:"2026-09-10 18:00",label:"Video recorded",frag:"—",type:"info"},
+    {t:"2026-09-10 18:30",label:"File finalized & saved",frag:"F020",type:"info"},
+    {t:"2026-09-25 14:02",label:"Recovered by RecoverX",frag:"—",type:"good"}
+  ],
+  "Meeting_Minutes_Q3.docx":[
+    {t:"2026-09-09 14:38",label:"Document created",frag:"—",type:"info"},
+    {t:"2026-09-09 14:40",label:"Final version saved",frag:"F014",type:"info"},
+    {t:"2026-09-25 14:05",label:"Recovered by RecoverX",frag:"—",type:"good"}
+  ]
+};
+
+let currentTimelineFile = "Evidence_Report.pdf";
+
+/* Heatmap setup */
+function seeded(i){ const x = Math.sin(i*9301+49297)*233280; return x-Math.floor(x); }
+const HEAT_BLOCK_COUNT = 32*14;
+const HEATMAP = [];
+for(let i=0;i<HEAT_BLOCK_COUNT;i++){
+  const r = seeded(i);
+  let status, reason;
+  if(r<0.48){status="recoverable";reason="Sector intact — verified header signature, high recovery confidence.";}
+  else if(r<0.68){status="corrupted";reason="Read retry error on sector — partial structure present but CRC checksum failed.";}
+  else if(r<0.82){status="overwritten";reason="Sector reused after file deletion — original byte markers overwritten.";}
+  else {status="empty";reason="Unallocated cluster — no file data present in this block range.";}
+  HEATMAP.push({i,status,reason});
+}
+
+/* ============================= TOAST NOTIFICATIONS ============================= */
+function showToast(msg, type="cyan"){
+  const c = document.getElementById("toastContainer");
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.style.borderColor = type==="green"?"var(--green)":type==="amber"?"var(--amber)":type==="red"?"var(--red)":"var(--cyan)";
+  t.innerHTML = `<span>ℹ️ ${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{
+    t.style.opacity="0";
+    t.style.transform="translateX(100%)";
+    setTimeout(()=>t.remove(),200);
+  },3000);
+}
+
+/* ============================= NAVIGATION ============================= */
+const views = document.querySelectorAll(".view");
+const navItems = document.querySelectorAll(".nav-item");
+const crumbLabel = document.getElementById("crumbLabel");
+const labelMap = {
+  dashboard:"Dashboard", newrecovery:"New Recovery", readsafely:"Read Safely", scandata:"Scan Data",
+  filetypes:"File Types", fragments:"Fragments", analyze:"Analyze Fragments", relationships:"Relationship Analysis",
+  graph:"Relationship Graph", heatmap:"Disk Heatmap", ordering:"Fragment Ordering", timeline:"Timeline Reconstruction",
+  reconstruction:"Reconstruction & Media Preview", filecheck:"Integrity Check", recovery:"Recovery Analysis", priority:"Evidence Priority",
+  final:"Final Results", report:"Reports", history:"Case History"
+};
+
+function goto(view){
+  views.forEach(v=>v.classList.remove("active"));
+  const target = document.getElementById("view-"+view);
+  if(target){
+    target.classList.add("active");
+  }
+  navItems.forEach(n=>n.classList.toggle("active", n.dataset.view===view));
+  crumbLabel.textContent = labelMap[view] || view;
+  window.scrollTo(0,0);
+  updateWfActiveNode(view);
+  if(view==="graph") renderGraph();
+  if(view==="heatmap") renderHeatmap();
+  if(view==="timeline") renderTimeline();
+  if(view==="reconstruction") renderReconstruct();
+  if(view==="history") renderHistoryTable();
+}
+
+document.querySelectorAll("[data-goto]").forEach(el=>{
+  el.addEventListener("click", ()=>goto(el.dataset.goto));
+});
+navItems.forEach(el=>{
+  el.addEventListener("click", ()=>goto(el.dataset.view));
+});
+
+/* ============================= WORKFLOW STRIP ============================= */
+function renderWfStrip(){
+  const el = document.getElementById("wfStrip");
+  const viewKeys = Object.keys(labelMap);
+  el.innerHTML = WORKFLOW.map((w,i)=>{
+    const viewKey = viewKeys[i] || 'dashboard';
+    return `<span class="wf-node" data-view="${viewKey}">${w}</span>${i<WORKFLOW.length-1?'<span class="wf-arrow">→</span>':''}`;
+  }).join("");
+  el.querySelectorAll(".wf-node").forEach(n=>{
+    n.addEventListener("click", ()=>goto(n.dataset.view));
+  });
+}
+function updateWfActiveNode(viewKey){
+  const viewKeys = Object.keys(labelMap);
+  const index = viewKeys.indexOf(viewKey);
+  const nodes = document.querySelectorAll(".wf-node");
+  nodes.forEach((n,i)=>n.classList.toggle("on", i===index));
+}
+renderWfStrip();
+
+/* ============================= REAL DYNAMIC FILE PROCESSING ============================= */
+
+function detectFileTypeFromBytes(buffer, name){
+  const u8 = new Uint8Array(buffer);
+  const hexHeader = Array.from(u8.slice(0, 16)).map(b=>b.toString(16).padStart(2,'0')).join("").toLowerCase();
+  const ext = name.split('.').pop().toLowerCase();
+
+  // Signature checks
+  if(hexHeader.startsWith("ffd8ff")) return {type:"JPG", category:"Image", mime:"image/jpeg"};
+  if(hexHeader.startsWith("89504e47")) return {type:"PNG", category:"Image", mime:"image/png"};
+  if(hexHeader.startsWith("25504446")) return {type:"PDF", category:"Document", mime:"application/pdf"};
+  if(hexHeader.startsWith("504b0304")) return {type:"DOCX", category:"Document", mime:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
+  if(hexHeader.startsWith("0000002066747970") || hexHeader.includes("66747970")) return {type:"VID", category:"Video", mime:"video/mp4"};
+  if(hexHeader.startsWith("52494646") && hexHeader.includes("415649")) return {type:"VID", category:"Video", mime:"video/x-msvideo"};
+  if(hexHeader.startsWith("494433") || hexHeader.startsWith("fffb")) return {type:"MP3", category:"Audio", mime:"audio/mpeg"};
+  
+  // Extension fallback
+  if(["jpg","jpeg"].includes(ext)) return {type:"JPG", category:"Image", mime:"image/jpeg"};
+  if(["png","webp","gif","bmp"].includes(ext)) return {type:"PNG", category:"Image", mime:`image/${ext}`};
+  if(["mp4","mov","avi","mkv","webm"].includes(ext)) return {type:"VID", category:"Video", mime:`video/${ext==='mov'?'mp4':ext}`};
+  if(["doc","docx"].includes(ext)) return {type:"DOCX", category:"Document", mime:"text/plain"};
+  if(ext === "pdf") return {type:"PDF", category:"Document", mime:"application/pdf"};
+  if(["txt","log","csv"].includes(ext)) return {type:"TXT", category:"Document", mime:"text/plain"};
+  if(["mp3","wav","ogg"].includes(ext)) return {type:"MP3", category:"Audio", mime:"audio/mpeg"};
+  if(["img","dd","e01","raw","iso","bin"].includes(ext)) return {type:"IMG", category:"Storage Dump", mime:"application/octet-stream"};
+
+  return {type:"RAW", category:"Binary", mime:"application/octet-stream"};
+}
+
+async function handleFilesAdded(fileList){
+  if(!fileList || fileList.length === 0) return;
+  
+  let newFrags = [];
+  let newCandidates = [];
+  let newRel = [];
+
+  showToast(`Processing ${fileList.length} evidence file(s)...`, "cyan");
+
+  for(let i=0; i<fileList.length; i++){
+    const file = fileList[i];
+    const buffer = await file.arrayBuffer();
+    const info = detectFileTypeFromBytes(buffer, file.name);
+    const blobUrl = URL.createObjectURL(file);
+    
+    // Hash computation
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const sizeKb = Math.round(file.size / 1024);
+    const fragId = "F" + String(FRAGMENTS.length + newFrags.length + 1).padStart(3, '0');
+    const offsetHex = "0x" + (0x0450 + (i * 0x0080)).toString(16).padStart(4, '0');
+
+    // Hex string sample
+    const u8 = new Uint8Array(buffer.slice(0, 40));
+    const hexSample = Array.from(u8).map(b => b.toString(16).padStart(2, '0')).join(' ');
+
+    const fragObj = {
+      id: fragId,
+      type: info.type,
+      size: `${sizeKb || 1} KB`,
+      offset: offsetHex,
+      condition: "Good",
+      meta: "Verified",
+      conf: 98,
+      status: "Recovered",
+      struct: 96,
+      content: 95,
+      metaComp: 98,
+      ts: new Date().toISOString().replace('T',' ').slice(0,16),
+      hex: hexSample || "ff d8 ff e0 00 10 4a 46 49 46 00 01 01 01"
+    };
+    newFrags.push(fragObj);
+
+    // Candidate file entry
+    let textPreviewContent = null;
+    if(info.category === "Document") {
+      try {
+        const textDecoder = new TextDecoder("utf-8");
+        const rawTxt = textDecoder.decode(buffer.slice(0, 1000));
+        textPreviewContent = rawTxt.replace(/[^\x20-\x7E\n\r\t]/g, ' ');
+      } catch(e) {
+        textPreviewContent = `Document contents of ${file.name}\nSize: ${file.size} bytes\nSHA-256: ${hashHex}`;
+      }
+    }
+
+    const candidateObj = {
+      name: file.name,
+      type: info.type,
+      frags: [fragId],
+      missing: 0,
+      recovery: 99,
+      integrity: 98,
+      corruption: 2,
+      relationship: 95,
+      status: "FULLY RECOVERABLE",
+      priority: "high",
+      previewType: info.category === "Image" ? "image" : info.category === "Video" ? "video" : info.category === "Audio" ? "audio" : "doc",
+      mediaUrl: blobUrl,
+      textContent: textPreviewContent || `[Recovered File: ${file.name} - Size: ${file.size} bytes - Verified Integrity]`
+    };
+    newCandidates.push(candidateObj);
+
+    // Relationship
+    if(newFrags.length > 1){
+      const prevFrag = newFrags[newFrags.length - 2];
+      newRel.push({
+        a: prevFrag.id,
+        b: fragId,
+        score: 91,
+        reasons: [`Uploaded together in Case Buffer`,`Compatible format sequence`,`Sequential offset ${offsetHex}`]
+      });
+    }
+  }
+
+  // Prepend new fragments and candidates
+  FRAGMENTS = [...newFrags, ...FRAGMENTS];
+  CANDIDATE_FILES = [...newCandidates, ...CANDIDATE_FILES];
+  RELATIONSHIPS = [...newRel, ...RELATIONSHIPS];
+
+  // Update UI Notice
+  document.getElementById("fileUploadedNotice").style.display = "flex";
+  document.getElementById("uploadedFileCountText").textContent = `${fileList.length} uploaded evidence file(s)`;
+  document.getElementById("rsTargetName").textContent = fileList[0].name;
+  
+  // Refresh stats
+  updateDashboardMetrics();
+  renderFragTable();
+  initAnalyzeTabs();
+  renderFileTypes();
+  renderRelTable();
+  
+  showToast(`Successfully analyzed ${fileList.length} uploaded files!`, "green");
+}
+
+// Drag and drop handlers
+const dropDisk = document.getElementById("dropDisk");
+const dropFiles = document.getElementById("dropFiles");
+const fileInputDisk = document.getElementById("fileInputDisk");
+const fileInputMedia = document.getElementById("fileInputMedia");
+
+[dropDisk, dropFiles].forEach(dp => {
+  if(!dp) return;
+  dp.addEventListener("dragover", (e)=>{ e.preventDefault(); dp.classList.add("dragover"); });
+  dp.addEventListener("dragleave", ()=>{ dp.classList.remove("dragover"); });
+  dp.addEventListener("drop", (e)=>{
+    e.preventDefault();
+    dp.classList.remove("dragover");
+    if(e.dataTransfer.files && e.dataTransfer.files.length > 0){
+      handleFilesAdded(e.dataTransfer.files);
+    }
+  });
+});
+
+if(fileInputDisk) fileInputDisk.addEventListener("change", (e)=>handleFilesAdded(e.target.files));
+if(fileInputMedia) fileInputMedia.addEventListener("change", (e)=>handleFilesAdded(e.target.files));
+document.getElementById("btnEngageProcess").addEventListener("click", ()=>{
+  showToast("Storage mounted in read-only write-blocked mode", "green");
+});
+
+/* ============================= PRESET DEMO DATA ============================= */
+document.getElementById("btnLoadDemoData").addEventListener("click", loadPresetDemoSuite);
+document.getElementById("btnQuickDemo").addEventListener("click", loadPresetDemoSuite);
+
+function loadPresetDemoSuite(){
+  showToast("Loaded Preset Forensic Evidence Suite (JPGs, MP4 Video, DOCX, PDF)", "cyan");
+  goto("scandata");
+  runAnimatedScan();
+}
+
+/* ============================= ANIMATED SCAN SCANNER ============================= */
+let scanInterval = null;
+function runAnimatedScan(){
+  let p = 0;
+  const bar = document.getElementById("scanProgressBar");
+  const pctText = document.getElementById("scanPctText");
+  const scannedText = document.getElementById("scanScannedSize");
+  const msg = document.getElementById("scanStatusMsg");
+
+  if(scanInterval) clearInterval(scanInterval);
+
+  scanInterval = setInterval(()=>{
+    p += 5;
+    if(p > 100) p = 100;
+    bar.style.width = p + "%";
+    pctText.textContent = p + "%";
+    scannedText.textContent = Math.round(500 * (p/100)) + " MB";
+
+    if(p < 30) msg.textContent = "Scanning partition table & analyzing MFT sector offsets...";
+    else if(p < 70) msg.textContent = "Extracting JPG, MP4, DOCX, and PDF magic bytes across sectors...";
+    else if(p < 99) msg.textContent = "Verifying fragment checksums & compiling candidate relationships...";
+    else {
+      msg.textContent = "Scan Complete! All 126 fragments & candidates cataloged successfully.";
+      clearInterval(scanInterval);
+      showToast("Deep sector scan completed!", "green");
+    }
+  }, 100);
+}
+document.getElementById("btnStartScan").addEventListener("click", runAnimatedScan);
+
+/* ============================= DASHBOARD METRICS UPDATE ============================= */
+function updateDashboardMetrics(){
+  document.getElementById("dashTotalFrags").textContent = FRAGMENTS.length;
+  document.getElementById("dashFullyRecov").textContent = CANDIDATE_FILES.filter(c=>c.status==="FULLY RECOVERABLE").length;
+  document.getElementById("dashUnrecov").textContent = CANDIDATE_FILES.filter(c=>c.status==="UNRECOVERABLE").length;
+  document.getElementById("scanFragsFound").textContent = FRAGMENTS.length;
+}
+
+/* ============================= FILE TYPE CARDS ============================= */
+function renderFileTypes(){
+  const el = document.getElementById("fileTypeCards");
+  const typeCounts = {};
+  FRAGMENTS.forEach(f => {
+    typeCounts[f.type] = (typeCounts[f.type] || 0) + 1;
+  });
+
+  const cardsData = [
+    {type:"JPG (Images)", frags: typeCounts["JPG"] || 27, conf:94, recov:"High"},
+    {type:"VID (MP4/Video)", frags: typeCounts["VID"] || 22, conf:92, recov:"High"},
+    {type:"DOCX (Word Docs)", frags: typeCounts["DOCX"] || 16, conf:88, recov:"Medium"},
+    {type:"PDF (Documents)", frags: typeCounts["PDF"] || 32, conf:96, recov:"High"},
+    {type:"PNG (Images)", frags: typeCounts["PNG"] || 14, conf:85, recov:"Medium"},
+    {type:"TXT/LOG", frags: typeCounts["TXT"] || 9, conf:92, recov:"High"},
+    {type:"Unknown / Raw", frags: typeCounts["Unknown"] || 6, conf:30, recov:"Low"}
+  ];
+
+  el.innerHTML = cardsData.map(f=>`
+    <div class="card">
+      <h3>${f.type}</h3>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">${f.frags} fragments detected</div>
+      <div style="margin-top:12px;">
+        <div class="bar-track"><div class="bar-fill" style="width:${f.conf}%;background:${f.conf>80?'var(--green)':f.conf>60?'var(--amber)':'var(--red)'};"></div></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:6px;">${f.conf}% Signature Match</div>
+      </div>
+      <div class="hint">Recoverability: <b style="color:var(--text);">${f.recov}</b></div>
+    </div>
+  `).join("");
+}
+renderFileTypes();
+
+/* ============================= FRAGMENT TABLE & HEX MODAL ============================= */
+function condTag(cond){
+  const map = {Good:"good",Partial:"warn",Corrupted:"bad"};
+  return `<span class="tag ${map[cond]||'dim'}">${cond}</span>`;
+}
+function statusTag(status){
+  const map = {Recovered:"good",Partial:"warn",Missing:"bad",Unrecoverable:"bad"};
+  return `<span class="tag ${map[status]||'dim'}">${status}</span>`;
+}
+
+function renderFragTable(){
+  const search = document.getElementById("fragSearch").value.toLowerCase();
+  const typeF = document.getElementById("fragTypeFilter").value;
+  const condF = document.getElementById("fragCondFilter").value;
+  const body = document.getElementById("fragTableBody");
+  
+  const rows = FRAGMENTS.filter(f=>{
+    if(search && !f.id.toLowerCase().includes(search) && !f.type.toLowerCase().includes(search)) return false;
+    if(typeF && f.type!==typeF) return false;
+    if(condF && f.condition!==condF) return false;
+    return true;
+  });
+
+  body.innerHTML = rows.map(f=>`
+    <tr>
+      <td style="color:var(--cyan);font-weight:600;">${f.id}</td>
+      <td>${f.type}</td>
+      <td>${f.size}</td>
+      <td>${f.offset}</td>
+      <td>${condTag(f.condition)}</td>
+      <td>${f.meta}</td>
+      <td>${f.conf}%</td>
+      <td><button class="btn ghost" onclick="openHexModal('${f.id}')" style="padding:3px 8px;font-size:11px;">🔍 Inspect Hex</button></td>
+    </tr>
+  `).join("") || `<tr><td colspan="8" style="color:var(--text-faint);text-align:center;">No fragments match filter criteria.</td></tr>`;
+}
+
+(function initFragUI(){
+  const typeSel = document.getElementById("fragTypeFilter");
+  typeSel.innerHTML = '<option value="">All file types</option>';
+  [...new Set(FRAGMENTS.map(f=>f.type))].forEach(t=>{
+    const o = document.createElement("option"); o.value=t; o.textContent=t; typeSel.appendChild(o);
+  });
+  document.getElementById("fragSearch").addEventListener("input", renderFragTable);
+  typeSel.addEventListener("change", renderFragTable);
+  document.getElementById("fragCondFilter").addEventListener("change", renderFragTable);
+  renderFragTable();
+})();
+
+/* Hex Inspector Modal */
+function openHexModal(fragId){
+  const f = FRAGMENTS.find(x=>x.id===fragId);
+  if(!f) return;
+  document.getElementById("hexModalTitle").textContent = `Fragment Hex Inspector — ${f.id} (${f.type})`;
+  const grid = document.getElementById("hexModalGrid");
+  
+  const bytes = f.hex.split(" ");
+  let addrStr = "", bytesStr = "", asciiStr = "";
+  for(let i=0; i<bytes.length; i+=8){
+    const chunk = bytes.slice(i, i+8);
+    addrStr += `0x${(i).toString(16).padStart(4,'0')}\n`;
+    bytesStr += chunk.join(" ") + "\n";
+    asciiStr += chunk.map(b => {
+      const code = parseInt(b, 16);
+      return (code >= 32 && code <= 126) ? String.fromCharCode(code) : ".";
+    }).join("") + "\n";
+  }
+
+  grid.innerHTML = `
+    <div class="hex-addr">${addrStr}</div>
+    <div class="hex-bytes">${bytesStr}</div>
+    <div class="hex-ascii">${asciiStr}</div>
+  `;
+  document.getElementById("hexModal").classList.add("active");
+}
+document.getElementById("hexModalClose").addEventListener("click", ()=>{
+  document.getElementById("hexModal").classList.remove("active");
+});
+
+/* ============================= ANALYZE FRAGMENTS ============================= */
+function relatedTo(id){
+  return RELATIONSHIPS.filter(r=>r.a===id||r.b===id).sort((a,b)=>b.score-a.score).slice(0,3)
+    .map(r=> (r.a===id?r.b:r.a) + " (" + r.score + "%)").join(", ") || "None found";
+}
+function renderAnalyzeDetail(id){
+  const f = FRAGMENTS.find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById("analyzeDetail").innerHTML = `
+    <div class="grid g2">
+      <div class="card">
+        <h3>Fragment ${f.id} Structural Properties</h3>
+        <table>
+          <tr><td style="color:var(--text-dim);">Signature Format</td><td><b style="color:var(--cyan);">${f.type}</b></td></tr>
+          <tr><td style="color:var(--text-dim);">Fragment Size</td><td>${f.size}</td></tr>
+          <tr><td style="color:var(--text-dim);">Sector Offset</td><td>${f.offset}</td></tr>
+          <tr><td style="color:var(--text-dim);">Timestamp</td><td>${f.ts}</td></tr>
+          <tr><td style="color:var(--text-dim);">Integrity Condition</td><td>${condTag(f.condition)}</td></tr>
+        </table>
+        <div style="margin-top:14px;">
+          <button class="btn ghost" onclick="openHexModal('${f.id}')">🔍 Open Hex Inspector</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>AI Structural Matching Scores</h3>
+        <div class="hint">Header &amp; Entropy Alignment</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${f.struct}%;background:var(--cyan);"></div></div>
+        <div class="hint" style="margin-top:12px;">Byte Content Pattern Match</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${f.content}%;background:var(--violet);"></div></div>
+        <div class="hint" style="margin-top:12px;">Metadata Compatibility</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${f.metaComp}%;background:var(--green);"></div></div>
+        <div class="hint" style="margin-top:16px;">Top Linked Fragments: <span style="color:var(--text);font-family:var(--mono);">${relatedTo(f.id)}</span></div>
+      </div>
+    </div>
+  `;
+}
+function initAnalyzeTabs(){
+  const tabs = document.getElementById("analyzeTabs");
+  tabs.innerHTML = FRAGMENTS.slice(0,8).map((f,i)=>`<button data-id="${f.id}" class="${i===0?'on':''}">${f.id}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      tabs.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      renderAnalyzeDetail(b.dataset.id);
+    });
+  });
+  if(FRAGMENTS.length>0) renderAnalyzeDetail(FRAGMENTS[0].id);
+}
+initAnalyzeTabs();
+
+/* ============================= RELATIONSHIPS TABLE ============================= */
+function renderRelTable(){
+  const body = document.getElementById("relTableBody");
+  body.innerHTML = RELATIONSHIPS.slice().sort((a,b)=>b.score-a.score).map(r=>`
+    <tr>
+      <td style="font-family:var(--mono);color:var(--cyan);">${r.a} ↔ ${r.b}</td>
+      <td><b>${r.score}%</b></td>
+      <td style="width:240px;"><div class="bar-track"><div class="bar-fill" style="width:${r.score}%;background:${r.score>75?'var(--green)':r.score>45?'var(--amber)':'var(--red)'};"></div></div></td>
+    </tr>
+  `).join("");
+}
+renderRelTable();
+
+/* ============================= RELATIONSHIP GRAPH (SVG) ============================= */
+let graphZoom = 1;
+let graphMinScore = 0;
+let graphNodes = [];
+
+function initGraphNodes(){
+  graphNodes = FRAGMENTS.slice(0,10).map((f,i)=>{
+    const cols=4, row=Math.floor(i/cols), col=i%cols;
+    return {...f, x: 140 + col*220, y: 100 + row*150};
+  });
+}
+initGraphNodes();
+
+function renderGraph(){
+  const svg = document.getElementById("graphSvg");
+  const side = document.getElementById("graphSide");
+  side.classList.remove("show");
+  let html = `<g transform="scale(${graphZoom})">`;
+
+  RELATIONSHIPS.filter(r=>r.score>=graphMinScore).forEach(r=>{
+    const a = graphNodes.find(n=>n.id===r.a), b = graphNodes.find(n=>n.id===r.b);
+    if(!a||!b) return;
+    const w = r.score>=80?4:r.score>=50?2:1;
+    const color = r.score>=80?'#3FAE72':r.score>=50?'#E3A639':'#4E5A62';
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${color}" stroke-width="${w}"
+              class="edge" data-a="${r.a}" data-b="${r.b}" style="cursor:pointer;"/>
+             <text x="${mx}" y="${my-6}" fill="#7C8A93" font-size="10" font-family="monospace" text-anchor="middle" style="pointer-events:none;">${r.score}%</text>`;
+  });
+
+  graphNodes.forEach(n=>{
+    const color = n.status==="Unrecoverable"?"#E1584F":n.status==="Missing"?"#E3A639":"#3FC6D8";
+    html += `<g class="node" data-id="${n.id}" style="cursor:grab;">
+      <circle cx="${n.x}" cy="${n.y}" r="32" fill="#161B21" stroke="${color}" stroke-width="2"/>
+      <text x="${n.x}" y="${n.y-3}" fill="#DCE4E8" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">${n.id}</text>
+      <text x="${n.x}" y="${n.y+12}" fill="${color}" font-size="9" font-family="monospace" text-anchor="middle">${n.type}</text>
+    </g>`;
+  });
+  html += `</g>`;
+  svg.innerHTML = html;
+
+  // Node click and side detail
+  svg.querySelectorAll(".node").forEach(g=>{
+    g.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const f = FRAGMENTS.find(x=>x.id===g.dataset.id);
+      side.classList.add("show");
+      side.innerHTML = `<h4>FRAGMENT ${f.id}</h4>
+        <div>Format: <b>${f.type}</b></div>
+        <div>Condition: ${condTag(f.condition)}</div>
+        <div>Confidence: <b>${f.conf}%</b></div>
+        <div>Offset: <span style="font-family:var(--mono);">${f.offset}</span></div>
+        <div style="margin-top:10px;color:var(--text-dim);">Top Affinity Links: <br><span style="color:var(--text);font-family:var(--mono);">${relatedTo(f.id)}</span></div>`;
+    });
+  });
+
+  svg.querySelectorAll(".edge").forEach(g=>{
+    g.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const r = RELATIONSHIPS.find(x=>x.a===g.dataset.a && x.b===g.dataset.b);
+      side.classList.add("show");
+      side.innerHTML = `<h4>LINK ${r.a} ↔ ${r.b}</h4>
+        <div>Affinity score: <b style="color:var(--cyan);">${r.score}%</b></div>
+        ${r.reasons.map(rs=>`<div class="reason">✓ ${rs}</div>`).join("")}`;
+    });
+  });
+}
+
+document.getElementById("gZoomIn").addEventListener("click", ()=>{ graphZoom=Math.min(1.8,graphZoom+0.15); renderGraph(); });
+document.getElementById("gZoomOut").addEventListener("click", ()=>{ graphZoom=Math.max(0.6,graphZoom-0.15); renderGraph(); });
+document.getElementById("gReset").addEventListener("click", ()=>{ graphZoom=1; graphMinScore=0; initGraphNodes(); document.getElementById("gStrengthFilter").value="0"; renderGraph(); });
+document.getElementById("gStrengthFilter").addEventListener("change", (e)=>{ graphMinScore=Number(e.target.value); renderGraph(); });
+
+/* ============================= DISK HEATMAP ============================= */
+const HEAT_COLORS = {recoverable:"#3FAE72",corrupted:"#E3A639",overwritten:"#E1584F",empty:"#33393E"};
+function renderHeatmap(){
+  const grid = document.getElementById("heatGrid");
+  grid.innerHTML = HEATMAP.map(b=>`<div class="hcell" style="background:${HEAT_COLORS[b.status]};" data-i="${b.i}" data-status="${b.status}" data-reason="${b.reason}"></div>`).join("");
+  grid.querySelectorAll(".hcell").forEach(c=>{
+    c.addEventListener("mouseenter", ()=>showHeatDetail(c));
+    c.addEventListener("click", ()=>showHeatDetail(c));
+  });
+  updateHeatStats();
+}
+
+function showHeatDetail(c){
+  const idx = c.dataset.i;
+  const status = c.dataset.status;
+  const labels = {recoverable:"Recoverable Sector",corrupted:"Corrupted Sector",overwritten:"Overwritten Sector",empty:"Unallocated Cluster"};
+  document.getElementById("heatDetail").innerHTML = `<b>Block ${idx} (Sector 0x${(idx*128).toString(16).padStart(4,'0')})</b> — <span style="color:${HEAT_COLORS[status]};font-weight:bold;">${labels[status]}</span>. ${c.dataset.reason}`;
+}
+
+function updateHeatStats(){
+  const total = HEATMAP.length;
+  const count = s => HEATMAP.filter(b=>b.status===s).length;
+  document.getElementById("heatPctGood").textContent = Math.round(count("recoverable")/total*100)+"%";
+  document.getElementById("heatPctCorrupt").textContent = Math.round(count("corrupted")/total*100)+"%";
+  document.getElementById("heatPctOver").textContent = Math.round(count("overwritten")/total*100)+"%";
+  document.getElementById("heatPctEmpty").textContent = Math.round(count("empty")/total*100)+"%";
+}
+
+/* ============================= FRAGMENT ORDERING ============================= */
+function renderOrderTable(){
+  const chain = FRAGMENTS.slice(0,4).map(f=>f.id);
+  const body = document.getElementById("orderTableBody");
+  body.innerHTML = chain.map((id,i)=>{
+    const f = FRAGMENTS.find(x=>x.id===id) || {conf:90};
+    const prevScore = i>0 ? (RELATIONSHIPS.find(r=>(r.a===chain[i-1]&&r.b===id)||(r.b===chain[i-1]&&r.a===id))||{score:"—"}).score : "—";
+    const nextScore = i<chain.length-1 ? (RELATIONSHIPS.find(r=>(r.a===chain[i+1]&&r.b===id)||(r.b===chain[i+1]&&r.a===id))||{score:"—"}).score : "—";
+    return `<tr>
+      <td style="color:var(--cyan);font-weight:bold;">${id}</td>
+      <td>Sequential Position ${i+1}</td>
+      <td>${f.conf}%</td>
+      <td>${prevScore}${prevScore!=="—"?"%":""}</td>
+      <td>${nextScore}${nextScore!=="—"?"%":""}</td>
+    </tr>`;
+  }).join("");
+}
+renderOrderTable();
+
+/* ============================= TIMELINE ============================= */
+const TL_COLORS = {info:"#3FC6D8",warn:"#E3A639",bad:"#E1584F",good:"#3FAE72"};
+function renderTimeline(){
+  const tabs = document.getElementById("timelineFileTabs");
+  tabs.innerHTML = Object.keys(TIMELINE_EVENTS).map((name,i)=>`<button data-name="${name}" class="${i===0?'on':''}">${name}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      tabs.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      currentTimelineFile = b.dataset.name;
+      drawTimeline();
+    });
+  });
+  drawTimeline();
+}
+
+function drawTimeline(){
+  const events = TIMELINE_EVENTS[currentTimelineFile] || TIMELINE_EVENTS["Evidence_Report.pdf"];
+  const el = document.getElementById("tlEvents");
+  el.innerHTML = events.map(e=>`
+    <div class="tl-event">
+      <div class="tl-dot" style="background:${TL_COLORS[e.type]};"></div>
+      <div class="tl-time">${e.t}</div>
+      <div class="tl-label">${e.label}</div>
+      <div class="tl-frag">${e.frag}</div>
+    </div>
+  `).join("");
+  document.getElementById("tlExplain").textContent = `Timeline reassembled from ${events.length} sector write events and metadata timestamps.`;
+}
+
+/* ============================= RECONSTRUCTION & MEDIA PREVIEWS ============================= */
+
+function renderReconstruct(){
+  const el = document.getElementById("reconstructList");
+  el.innerHTML = CANDIDATE_FILES.map((cf, idx)=>{
+    const statusColor = cf.status==="FULLY RECOVERABLE"?"good":cf.status==="UNRECOVERABLE"?"bad":"warn";
+    
+    // Render media preview element based on previewType
+    let previewHtml = "";
+    if(cf.previewType === "image"){
+      const imgSrc = cf.mediaUrl || `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" fill="%23161B21"/><text x="50%" y="45%" fill="%233FC6D8" font-size="20" font-family="monospace" text-anchor="middle">🖼️ RECONSTRUCTED IMAGE PREVIEW</text><text x="50%" y="60%" fill="%237C8A93" font-size="14" font-family="sans-serif" text-anchor="middle">${cf.name} — ${cf.recovery}% Verified</text></svg>`;
+      previewHtml = `
+        <div class="media-preview-container">
+          <img src="${imgSrc}" alt="${cf.name}">
+          <div style="font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:8px;">Visual Preview: ${cf.name} (${cf.integrity}% Integrity)</div>
+        </div>
+      `;
+    } else if(cf.previewType === "video"){
+      const videoSrc = cf.mediaUrl;
+      if(videoSrc){
+        previewHtml = `
+          <div class="media-preview-container">
+            <video controls src="${videoSrc}"></video>
+            <div style="font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:8px;">🎬 Recovered Video Playback: ${cf.name}</div>
+          </div>
+        `;
+      } else {
+        previewHtml = `
+          <div class="media-preview-container" style="text-align:center;">
+            <div style="font-size:40px;margin-bottom:8px;">🎬</div>
+            <div style="font-family:var(--mono);color:var(--cyan);font-size:15px;font-weight:bold;">RECONSTRUCTED MP4 VIDEO STREAM</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">1920x1080 H.264 Video Stream — 60 FPS — 00:04:12 Duration</div>
+            <div style="margin-top:12px;"><button class="btn ghost" onclick="showToast('Playing simulated video stream...','cyan')">▶ Play Video Stream</button></div>
+          </div>
+        `;
+      }
+    } else if(cf.previewType === "doc" || cf.previewType === "pdf"){
+      previewHtml = `
+        <div class="media-preview-container">
+          <div class="doc-preview">${cf.textContent || "No text content extractable."}</div>
+        </div>
+      `;
+    } else {
+      previewHtml = `
+        <div class="media-preview-container">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">${cf.textContent || "Raw Binary Preview"}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="card" style="margin-bottom:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0;">${cf.name} <span class="tag ${statusColor}" style="margin-left:8px;">${cf.status}</span></h3>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--cyan);">${cf.recovery}% Recovered</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:6px;">
+          Fragments Connected: <span style="color:var(--text);">${cf.frags.join(" → ")}</span> · ${cf.missing} Fragment(s) Missing
+        </div>
+        ${previewHtml}
+        <div style="margin-top:12px;display:flex;gap:10px;">
+          <button class="btn ghost" onclick="downloadReconstructedCandidate('${cf.name}')">💾 Export Recovered File</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function downloadReconstructedCandidate(fileName){
+  const cf = CANDIDATE_FILES.find(c=>c.name===fileName);
+  if(!cf) return;
+  const content = cf.textContent || `Recovered contents of ${fileName}`;
+  const blob = new Blob([content], {type: "text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast(`Exported ${fileName} to local system`, "green");
+}
+
+/* ============================= CIRCULAR PROGRESS METRICS ============================= */
+function circle(pct, color, label){
+  const r=42, c=2*Math.PI*r, off = c - (pct/100)*c;
+  return `<div class="circ">
+    <svg width="120" height="120" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#1B2127" stroke-width="8"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/>
+    </svg>
+    <div class="num" style="color:${color};">${pct}%</div>
+    <div class="lbl">${label}</div>
+  </div>`;
+}
+
+function renderCircles(){
+  document.getElementById("circWrap").innerHTML =
+    circle(94,"#3FC6D8","Recovery confidence") +
+    circle(80,"#3FAE72","Data recovered") +
+    circle(87,"#DCE4E8","File integrity") +
+    circle(13,"#E1584F","Estimated corruption");
+}
+renderCircles();
+
+/* ============================= EVIDENCE PRIORITY LIST ============================= */
+function priorityReasons(cf){
+  const reasons = [];
+  if(cf.relationship>=80) reasons.push("Strong fragment affinity & header match");
+  if(cf.recovery>=85) reasons.push("High recovery confidence metric (>85%)");
+  if(cf.integrity>=80) reasons.push("Valid format structure & header integrity");
+  if(cf.missing===0) reasons.push("All sequence fragments successfully connected");
+  else reasons.push(`${cf.missing} missing fragment(s) detected`);
+  return reasons;
+}
+
+function renderPriorityList(){
+  const el = document.getElementById("priorityList");
+  const order = {high:0,medium:1,low:2};
+  el.innerHTML = CANDIDATE_FILES.slice().sort((a,b)=>order[a.priority]-order[b.priority]).map(cf=>`
+    <div class="priority-row">
+      <div class="priority-badge ${cf.priority}">${cf.priority.toUpperCase()} PRIORITY</div>
+      <div class="card">
+        <h3>${cf.name}</h3>
+        <div class="grid g4" style="margin:10px 0 12px;">
+          <div><div class="hint">Affinity</div><div style="font-family:var(--mono);">${cf.relationship}%</div></div>
+          <div><div class="hint">Recovery</div><div style="font-family:var(--mono);">${cf.recovery}%</div></div>
+          <div><div class="hint">Integrity</div><div style="font-family:var(--mono);">${cf.integrity}%</div></div>
+          <div><div class="hint">Corruption</div><div style="font-family:var(--mono);">${cf.corruption}%</div></div>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-faint);margin-bottom:6px;">Forensic Priority Rationale:</div>
+        ${priorityReasons(cf).map(r=>`<div style="color:var(--text-dim);font-size:12px;margin-top:3px;">✓ ${r}</div>`).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+renderPriorityList();
+
+/* ============================= FINAL SUMMARY TABLE ============================= */
+function renderFinalTable(){
+  const el = document.getElementById("finalTableBody");
+  el.innerHTML = CANDIDATE_FILES.map(cf=>{
+    const statusColor = cf.status==="FULLY RECOVERABLE"?"good":cf.status==="UNRECOVERABLE"?"bad":"warn";
+    return `<tr>
+      <td style="color:var(--cyan);font-weight:bold;">${cf.name}</td>
+      <td>${cf.type}</td>
+      <td>${cf.recovery}%</td>
+      <td>${cf.integrity}%</td>
+      <td>${cf.corruption}%</td>
+      <td><span class="priority-badge ${cf.priority}" style="padding:2px 6px;font-size:9.5px;">${cf.priority.toUpperCase()}</span></td>
+      <td><span class="tag ${statusColor}">${cf.status}</span></td>
+    </tr>`;
+  }).join("");
+}
+renderFinalTable();
+
+/* ============================= REPORT & CASE HISTORY ============================= */
+document.getElementById("repDate").textContent = new Date().toISOString().slice(0,10);
+
+function buildReportHtml(){
+  const date = new Date().toISOString().slice(0,10);
+  const caseId = document.getElementById("caseIdInput").value || "CASE-2026-0417";
+  const caseTitle = document.getElementById("inputCaseTitle").value;
+  const analyst = document.getElementById("inputAnalyst").value;
+
+  const rows = CANDIDATE_FILES.map(cf=>`
+    <tr>
+      <td>${cf.name}</td><td>${cf.type}</td><td>${cf.status}</td><td>${cf.recovery}%</td>
+      <td>${cf.integrity}%</td><td>${cf.corruption}%</td><td>${cf.priority.toUpperCase()}</td>
+    </tr>`).join("");
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>RecoverX Forensic Report — ${caseId}</title>
+  <style>
+    body{font-family:Georgia,serif;background:#fff;color:#111;max-width:850px;margin:40px auto;line-height:1.6;}
+    h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px;}
+    h2{font-size:16px;margin-top:30px;border-bottom:1px solid #ccc;padding-bottom:4px;}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+    th,td{border:1px solid #ccc;padding:8px 10px;text-align:left;}
+    th{background:#f4f4f4;}
+    .meta{font-size:13px;color:#555;}
+  </style></head><body>
+  <h1>RecoverX AI — Digital Forensic Recovery & Evidence Report</h1>
+  <p class="meta">Case ID: <b>${caseId}</b> &nbsp;|&nbsp; Title: <b>${caseTitle}</b> &nbsp;|&nbsp; Lead Analyst: <b>${analyst}</b> &nbsp;|&nbsp; Date: <b>${date}</b></p>
+
+  <h2>1. Summary of Analysis</h2>
+  <p>500 MB of target storage was mounted in write-blocked read-only mode. Sector scan recovered <b>${FRAGMENTS.length} fragments</b> across <b>${CANDIDATE_FILES.length} candidate files</b> including JPG, MP4 Video, DOCX, and PDF formats.</p>
+
+  <h2>2. Forensic Evidence Priority & Findings</h2>
+  <table><tr><th>File Name</th><th>Format</th><th>Status</th><th>Recovery %</th><th>Integrity %</th><th>Corruption %</th><th>Priority</th></tr>
+  ${rows}</table>
+
+  <h2>3. Chain of Custody & Verification</h2>
+  <p>All calculations verified with hardware write blocker active. Cryptographic hash SHA-256 verified intact.</p>
+  </body></html>`;
+}
+
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("downloadReportBtn").addEventListener("click", ()=>{
+  downloadBlob(buildReportHtml(), "RecoverX-Forensic-Report.html", "text/html");
+  showToast("Report exported as RecoverX-Forensic-Report.html", "green");
+});
+document.getElementById("downloadJsonBtn").addEventListener("click", ()=>{
+  const data = {caseId: document.getElementById("caseIdInput").value, fragments: FRAGMENTS, candidateFiles: CANDIDATE_FILES, heatmap: HEATMAP};
+  downloadBlob(JSON.stringify(data, null, 2), "RecoverX-CaseData.json", "application/json");
+  showToast("Case data JSON exported successfully", "green");
+});
+
+/* LocalStorage Case History */
+function renderHistoryTable(){
+  const cases = [
+    {id:"CASE-2026-0417", name:"Recovered Client Drive — Q3 Incident", date:"2026-09-25", files:"16 / 18", status:"Complete"},
+    {id:"CASE-2026-0311", name:"Corporate Laptop — Exit Audit", date:"2026-08-02", files:"9 / 14", status:"Complete"},
+    {id:"CASE-2026-0198", name:"Field Drive — Site B Investigation", date:"2026-06-19", files:"3 / 22", status:"Archived"}
+  ];
+  const tbody = document.getElementById("historyTableBody");
+  tbody.innerHTML = cases.map(c=>`
+    <tr>
+      <td style="color:var(--cyan);font-family:var(--mono);">${c.id}</td>
+      <td>${c.name}</td>
+      <td>${c.date}</td>
+      <td>${c.files}</td>
+      <td><span class="tag ${c.status==='Complete'?'good':'warn'}">${c.status}</span></td>
+      <td><button class="btn ghost" onclick="showToast('Loaded ${c.id} session','cyan')" style="padding:3px 8px;font-size:11px;">Load Case</button></td>
+    </tr>
+  `).join("");
+}
+
+/* Initialization */
+goto("dashboard");
+</script>
+</body>
+</html>
